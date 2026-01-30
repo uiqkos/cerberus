@@ -338,7 +338,7 @@ class BareValidator(object):
             child_config['error_handler'] = toy_error_handler
             child_config['root_allow_unknown'] = self.allow_unknown
             child_config['root_require_all'] = self.require_all
-            child_config['root_document'] = self.document
+            child_config['root_document'] = self.schema
             child_config['root_schema'] = self.schema
 
         child_validator = self.__class__(**child_config)
