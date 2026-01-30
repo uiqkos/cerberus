@@ -110,7 +110,7 @@ class BareValidator(object):
     not.
     Type: :class:`tuple`
     """
-    priority_validations = ('nullable', 'readonly', 'type', 'empty')
+    priority_validations = ('nullable', 'readonly', 'type', 'empty', 'if_field')
     """
     Rules that will be processed in that order before any other.
     Type: :class:`tuple`
@@ -1134,6 +1134,36 @@ class BareValidator(object):
         else:
             if value not in allowed_values:
                 self._error(field, errors.UNALLOWED_VALUE, value)
+
+    def _validate_if_field(self, if_field, field, value):
+        """
+        {'type': 'dict',
+         'schema': {
+             'field': {'type': 'string'},
+             'value': {},
+             'then': {'type': 'dict'}
+         }}
+        """
+        # 1. Check if the referenced field exists and has the specified value in the current document level
+        ref_field = if_field.get('field')
+        expected_value = if_field.get('value')
+        then_rules = if_field.get('then', {})
+        
+        # Only look up in the current document level
+        ref_value = self.document.get(ref_field, None)
+        if ref_value == expected_value:
+            # Validate the current field against the 'then' rules
+            # Compose a temporary schema for this field
+            temp_schema = then_rules.copy()
+            # Remove 'if_field' from remaining rules to avoid recursion
+            self._drop_remaining_rules('if_field')
+            # Validate each rule in 'then' as if it were present directly
+            for rule, constraint in temp_schema.items():
+                validator = self.__get_rule_handler('validate', rule)
+                validator(constraint, field, value)
+        else:
+            # If condition not met, skip 'then' rules
+            self._drop_remaining_rules(*then_rules.keys())
 
     def _validate_check_with(self, checks, field, value):
         """
