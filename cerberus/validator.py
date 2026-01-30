@@ -767,7 +767,7 @@ class BareValidator(object):
             return value
 
     def __normalize_containers(self, mapping, schema):
-        for field in mapping:
+        for field in list(mapping):
             rules = set(schema.get(field, ()))
 
             # TODO: This check conflates validation and normalization
@@ -785,6 +785,12 @@ class BareValidator(object):
                 ) or isinstance(self.allow_unknown, Mapping):
                     try:
                         self.__normalize_mapping_per_schema(field, mapping, schema)
+                        # If errors were added for this field, remove the invalid mapping
+                        if self._errors and any(
+                            getattr(e, 'document_path', None) == self.document_path + (field,)
+                            for e in self._errors
+                        ):
+                            mapping.pop(field, None)
                     except _SchemaRuleTypeError:
                         pass
 
@@ -849,9 +855,12 @@ class BareValidator(object):
         )  # noqa: E501
         value_type = type(mapping[field])
         result_value = validator.normalized(mapping[field], always_return_document=True)
-        mapping[field] = value_type(result_value)
         if validator._errors:
             self._error(validator._errors)
+            # Do not update the mapping with invalid normalized value
+            # Optionally, could set mapping[field] = None or leave as-is
+        else:
+            mapping[field] = value_type(result_value)
 
     def __normalize_sequence_per_schema(self, field, mapping, schema):
         schema = dict(
