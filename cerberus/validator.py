@@ -1433,7 +1433,7 @@ class BareValidator(object):
         if not pattern.endswith('$'):
             pattern += '$'
         re_obj = re.compile(pattern)
-        if not re_obj.match(value):
+        if re_obj.search(value):
             self._error(field, errors.REGEX_MISMATCH)
 
     _validate_required = dummy_for_rule_validation(""" {'type': 'boolean'} """)
