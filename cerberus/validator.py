@@ -1430,10 +1430,14 @@ class BareValidator(object):
         """{'type': 'string'}"""
         if not isinstance(value, _str_type):
             return
-        if not pattern.endswith('$'):
-            pattern += '$'
         re_obj = re.compile(pattern)
-        if re_obj.search(value):
+        # Use fullmatch if available (Python 3.4+), else fallback to match with anchors
+        if hasattr(re_obj, 'fullmatch'):
+            matched = re_obj.fullmatch(value)
+        else:
+            # Fallback for Python 2: simulate fullmatch
+            matched = re_obj.match(value) and re_obj.match(value).end() == len(value)
+        if not matched:
             self._error(field, errors.REGEX_MISMATCH)
 
     _validate_required = dummy_for_rule_validation(""" {'type': 'boolean'} """)
