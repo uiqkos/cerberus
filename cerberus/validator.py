@@ -1501,7 +1501,7 @@ class BareValidator(object):
             require_all=field_rules.get('require_all', self.require_all),
         )
         try:
-            if not validator(value, update=self.update, normalize=False):
+            if not validator(value, update=self.update, normalize=True):
                 self._error(field, errors.MAPPING_SCHEMA, validator._errors)
         except _SchemaRuleTypeError:
             self._error(field, errors.BAD_TYPE_FOR_SCHEMA)
