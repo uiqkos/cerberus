@@ -1430,11 +1430,17 @@ class BareValidator(object):
         """{'type': 'string'}"""
         if not isinstance(value, _str_type):
             return
-        if not pattern.endswith('$'):
-            pattern += '$'
         re_obj = re.compile(pattern)
-        if re_obj.search(value):
-            self._error(field, errors.REGEX_MISMATCH)
+        # Use fullmatch if available (Python 3.4+), else simulate with match and $ anchor
+        if hasattr(re_obj, 'fullmatch'):
+            if not re_obj.fullmatch(value):
+                self._error(field, errors.REGEX_MISMATCH)
+        else:
+            # Fallback for older Python: ensure pattern ends with $ and use match
+            anchored_pattern = pattern if pattern.endswith('$') else pattern + '$'
+            re_obj = re.compile(anchored_pattern)
+            if not re_obj.match(value):
+                self._error(field, errors.REGEX_MISMATCH)
 
     _validate_required = dummy_for_rule_validation(""" {'type': 'boolean'} """)
 
