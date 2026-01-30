@@ -749,7 +749,7 @@ class BareValidator(object):
         elif isinstance(processor, Iterable):
             result = value
             for p in processor:
-                result = self.__normalize_coerce(p, field, result, nullable, error)
+                result = self.__normalize_coerce(p, field, value, nullable, error)
                 if (
                     errors.COERCION_FAILED
                     in self.document_error_tree.fetch_errors_from(
