@@ -1119,6 +1119,16 @@ class BareValidator(object):
     # Remember to keep the validation methods below this line
     # sorted alphabetically
 
+    def _validate_divisibleby(self, divisibleby, field, value):
+        """{'type': 'integer'}"""
+        if value == 0:
+            return
+        try:
+            if value % divisibleby != 0:
+                self._error(field, errors.DIVISIBLEBY, divisibleby)
+        except Exception:
+            self._error(field, errors.DIVISIBLEBY, divisibleby)
+
     _validate_allow_unknown = dummy_for_rule_validation(
         """ {'oneof': [{'type': 'boolean'},
                        {'type': ['dict', 'string'],
