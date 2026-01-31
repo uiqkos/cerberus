@@ -48,6 +48,7 @@ MAX_LENGTH = ErrorDefinition(0x28, 'maxlength')
 
 
 # color
+DIVISIBLEBY = ErrorDefinition(0x49, 'divisibleby')
 REGEX_MISMATCH = ErrorDefinition(0x41, 'regex')
 MIN_VALUE = ErrorDefinition(0x42, 'min')
 MAX_VALUE = ErrorDefinition(0x43, 'max')
@@ -126,6 +127,10 @@ class ValidationError(object):
             return compare_paths_lt(self.schema_path, other.schema_path)
 
     def __repr__(self):
+        # Custom error message for divisibleby
+        if self.rule == 'divisibleby':
+            return f"value is not divisible by {self.constraint}"
+
         return (
             "{class_name} @ {memptr} ( "
             "document_path={document_path},"
